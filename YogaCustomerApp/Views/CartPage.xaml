@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="YogaCustomerApp.Views.CartPage"
+             BackgroundColor="#F8F3E7">
+
+    <ScrollView >
+        <StackLayout>
+
+            <!-- Title -->
+            <Label Text="Your Cart"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="#2C3E50"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20" />
+
+            <!-- Cart List -->
+            <ListView x:Name="CartListView" 
+                      ItemsSource="{Binding CartClasses}"
+                      Margin="0,0,0,20"
+                      SeparatorVisibility="Default">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Orientation="Horizontal" Spacing="15">
+
+                                <!-- Class Type -->
+                                <Label Text="{Binding ClassType}" 
+                                       FontSize="Medium" 
+                                       TextColor="#2C3E50" 
+                                       VerticalOptions="Center" 
+                                       HorizontalOptions="Start"/>
+
+                                <!-- Teacher Name -->
+                                <Label Text="{Binding TeacherName}" 
+                                       FontSize="Small" 
+                                       TextColor="#5C5E61" 
+                                       VerticalOptions="Center" 
+                                       HorizontalOptions="StartAndExpand"/>
+
+                                <!-- Class Price -->
+                                <Label Text="{Binding Price, StringFormat='{0:C}'}" 
+                                       FontSize="Medium" 
+                                       TextColor="#5C5E61" 
+                                       VerticalOptions="Center" 
+                                       HorizontalOptions="End"/>
+
+                                <!-- Delete Button -->
+                                <Button Text="Delete"
+                                        BackgroundColor="#FF6347"
+                                        TextColor="White"
+                                        CornerRadius="10"
+                                        Clicked="OnDeleteClicked"
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="End"
+                                        />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!-- Total Price -->
+            <Label Text="Total: "
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#2C3E50"
+                   HorizontalOptions="Center" 
+                   Margin="0,10"/>
+
+            <Label x:Name="TotalPriceLabel" 
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="#D1A570"
+                   HorizontalOptions="Center"
+                   Margin="0,10"/>
+
+            <!-- Email Section -->
+            <Label Text="Enter your Email"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="#2C3E50"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,5" />
+
+            <Entry x:Name="EmailEntry"
+                   Placeholder="Email Address"
+                   Keyboard="Email"
+                   HorizontalOptions="FillAndExpand"
+                   PlaceholderColor="#2C3E50"
+                   TextColor="#2C3E50"
+                   Margin="0,0,0,20"/>
+
+            <!-- Book Now Button -->
+            <Button Text="Book Now"
+                    BackgroundColor="#4CAF50"
+                    TextColor="White"
+                    CornerRadius="25"
+                    Padding="15"
+                    HeightRequest="50"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Center"
+                    Clicked="OnBookClassClicked"/>
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>
+ 

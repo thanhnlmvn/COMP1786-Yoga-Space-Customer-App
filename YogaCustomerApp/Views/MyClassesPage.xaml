@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="YogaCustomerApp.Views.MyClassesPage"
+             BackgroundColor="#F8F3E7">
+
+    <StackLayout Padding="20" Spacing="20">
+        <!-- Tiêu đề trang -->
+        <Label Text="All Booked Classes"
+               FontSize="26"
+               FontAttributes="Bold"
+               TextColor="#2C3E50"
+               HorizontalOptions="Center"
+               Margin="0,0,0,20" />
+
+        <!-- List of all booked classes -->
+        <ListView x:Name="BookedClassesListView"
+                  ItemsSource="{Binding BookedClasses}"
+                  Margin="0,0,0,20"
+                  HasUnevenRows="True">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Frame Padding="15" Margin="0,0,0,10" CornerRadius="15" BackgroundColor="#FFFFFF" HasShadow="True">
+                            <StackLayout Spacing="15">
+                                <!-- Class Type -->
+                                <Label Text="{Binding ClassType}" FontSize="Medium" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" />
+
+                                <!-- Teacher Name -->
+                                <Label Text= "{Binding TeacherName}" FontSize="Small" TextColor="#5C5E61" VerticalOptions="Center" />
+
+                                <!-- Class Date -->
+                                <Label Text="{Binding Date}" FontSize="Small" TextColor="#5C5E61" VerticalOptions="Center" />
+
+                                <!-- Class Price -->
+                                <Label Text="{Binding Price, StringFormat='{0:C}'}" FontSize="Small" TextColor="#D1A570" FontAttributes="Bold" VerticalOptions="Center" />
+
+                                <!-- Display Email Address -->
+                                <Label Text="{Binding Email}" FontSize="Small" TextColor="#5C5E61" VerticalOptions="Center" />
+
+                                <!-- Cancel Class Button -->
+                                <Button Text="Cancel Class"
+                                        BackgroundColor="#F44336"
+                                        TextColor="White"
+                                        CornerRadius="25"
+                                        Padding="15"
+                                        HeightRequest="50"
+                                        HorizontalOptions="FillAndExpand"
+                                        VerticalOptions="Center"
+                                        Clicked="OnCancelClassClicked"/>
+                            </StackLayout>
+                        </Frame>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!-- Display total booked classes count -->
+        <StackLayout Spacing="5">
+            <Label Text="Total Classes Booked: "
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#2C3E50"
+                   HorizontalOptions="Center" />
+
+            <Label x:Name="TotalBookedClassesLabel" 
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="#D1A570"
+                   HorizontalOptions="Center" />
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

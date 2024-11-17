@@ -1,0 +1,62 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="YogaCustomerApp.MainPage"
+             BackgroundColor="#F8F3E7">
+
+    <!-- Toàn bộ nội dung được căn giữa -->
+    <StackLayout
+                 VerticalOptions="CenterAndExpand" 
+                 HorizontalOptions="CenterAndExpand">
+
+        <!-- Logo Image -->
+        <Image Source="logo.png"
+               WidthRequest="150"
+               HeightRequest="150"
+               HorizontalOptions="Center"
+               Margin="0,0,0,24"/>
+
+        <!-- Tiêu đề trang -->
+        <Label Text="Welcome to Yoga App" 
+               FontSize="32" 
+               FontAttributes="Bold"
+               TextColor="#2C3E50"
+               HorizontalOptions="Center" 
+               VerticalOptions="Center" 
+               Margin="0,24,0,24"
+               LineBreakMode="WordWrap"
+               HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Center"/>
+
+        <!-- Phần mô tả dưới tiêu đề -->
+        <Label Text="Explore and book yoga classes" 
+               FontSize="16" 
+               TextColor="#5C5E61"
+               HorizontalOptions="Center"
+               Margin="0,8,0,24"/>
+
+        <!-- Nút để điều hướng đến trang ViewAllClass -->
+        <Button Text="View All Classes" 
+                FontSize="20" 
+                BackgroundColor="#D1A570"
+                TextColor="#FFFFFF"
+                CornerRadius="10"
+                Padding="10"
+                WidthRequest="250"
+                HorizontalOptions="Center"
+                Margin="0,10"
+                Clicked="OnViewAllClassesClicked"/>
+
+        <!-- Nút My Classes -->
+        <Button Text="My Classes" 
+                FontSize="20" 
+                BackgroundColor="#D1A570"
+                TextColor="#FFFFFF"
+                CornerRadius="10"
+                Padding="10"
+                WidthRequest="250"
+                HorizontalOptions="Center"
+                Margin="0,20,0,0"
+                Clicked="OnMyClassesClicked"/>
+    </StackLayout>
+
+</ContentPage>

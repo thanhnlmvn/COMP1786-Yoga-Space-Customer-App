@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="YogaCustomerApp.Views.ViewAllClass"
+             BackgroundColor="#F8F3E7">
+
+    <Grid>
+        <ScrollView Padding="20">
+            <StackLayout Spacing="25">
+                <!-- Tiêu đề trang -->
+                <Label Text="Available Yoga Classes"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#2C3E50"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,20" />
+
+                <!-- Tìm kiếm theo tên giáo viên -->
+                <Label Text="Search by Teacher"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="#2C3E50" />
+                <Entry x:Name="TeacherSearchEntry"
+                       Placeholder="Enter teacher's name"
+                       PlaceholderColor="#2C3E50"
+                       TextColor="#2C3E50"
+                       TextChanged="OnTeacherSearchTextChanged"
+                       HorizontalOptions="FillAndExpand"
+                       Margin="0,0,0,20" />
+
+                <!-- ListView để hiển thị gợi ý tên giáo viên -->
+                <ListView x:Name="TeacherSuggestionsListView"
+                          IsVisible="False"
+                          ItemsSource="{Binding TeacherSuggestions}"
+                          ItemTapped="OnTeacherSuggestionTapped"
+                          Margin="0,0,0,20">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextCell Text="{Binding TeacherName}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <!-- Tìm kiếm theo ngày -->
+                <Label Text="Search by Date"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="#2C3E50" />
+                <DatePicker x:Name="ClassDatePicker"
+                            DateSelected="OnDateSelected"
+                            TextColor="#2C3E50"
+                            HorizontalOptions="FillAndExpand"
+                            Margin="0,0,0,20" />
+
+                <!-- CollectionView để hiển thị danh sách lớp học -->
+                <CollectionView x:Name="YogaClassList" 
+                                ItemsSource="{Binding YogaClasses}"
+                                VerticalOptions="FillAndExpand"
+                                Margin="0,0,0,20">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <StackLayout Margin="0,0,0,20">
+                                <Frame Padding="15" Margin="0,0,0,10" CornerRadius="15" BackgroundColor="#FFFFFF" HasShadow="True">
+                                    <StackLayout Spacing="10">
+                                        <Label Text="{Binding ClassType}" FontSize="Large" TextColor="#5C5E61" />
+                                        <Label Text="{Binding TeacherName}" FontSize="Medium" TextColor="#2C3E50" FontAttributes="Bold" />
+                                        <StackLayout Orientation="Horizontal" Spacing="10">
+                                            <Label Text="{Binding Date}" FontSize="Small" TextColor="#5C5E61" />
+                                            <Label Text="{Binding Time}" FontSize="Small" TextColor="#5C5E61" />
+                                        </StackLayout>
+                                        <Label Text="{Binding Price, StringFormat='Price: {0:C}'}" FontSize="Small" TextColor="#D1A570" FontAttributes="Bold" />
+                                        <Label Text="{Binding Description}" FontSize="Small" TextColor="#5C5E61" LineBreakMode="WordWrap" MaxLines="2" />
+
+                                        <!-- Các nút -->
+                                        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="20">
+                                            <Button Text="View Detail" 
+                                                    BackgroundColor="#D1A570" 
+                                                    TextColor="White" 
+                                                    CornerRadius="20" 
+                                                    Padding="10" 
+                                                    HeightRequest="40" 
+                                                    HorizontalOptions="Center"
+                                                    Margin="0,10,0,0"
+                                                    Clicked="OnDetailClicked" />
+                                            <Button Text="Add to Cart" 
+                                                    BackgroundColor="#4CAF50" 
+                                                    TextColor="White" 
+                                                    CornerRadius="20" 
+                                                    Padding="10" 
+                                                    HeightRequest="40" 
+                                                    HorizontalOptions="Center"
+                                                    Margin="0,10,0,0"
+                                                    Clicked="OnAddToCartClicked" />
+                                        </StackLayout>
+                                    </StackLayout>
+                                </Frame>
+                                <BoxView HeightRequest="1" Color="#E0E0E0" Margin="10,0"/>
+                            </StackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Cập nhật số lượng lớp học trong giỏ vào button -->
+        <Button x:Name="YourCartButton"
+                Text="Your Cart (0)"
+                BackgroundColor="#4CAF50"  
+                TextColor="White"
+                CornerRadius="0"
+                Padding="15"
+                HeightRequest="50"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="End"
+                Margin="0,20,0,0"
+                Clicked="OnYourCartClicked"/>
+    </Grid>
+</ContentPage>

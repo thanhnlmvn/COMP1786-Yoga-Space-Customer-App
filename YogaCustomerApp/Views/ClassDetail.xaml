@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="YogaCustomerApp.Views.ClassDetail"
+             BackgroundColor="#F8F3E7">
+
+    <ScrollView Padding="20">
+        <StackLayout Spacing="25">
+            <!-- Tiêu đề Class Detail -->
+            <Label Text="Class Detail"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#2C3E50"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Start"
+                   Margin="0,0,0,20" />
+
+            <!-- Hiển thị thông tin chi tiết lớp học -->
+            <Frame Padding="20" CornerRadius="20" BackgroundColor="#FFFFFF" HasShadow="True" HorizontalOptions="FillAndExpand" VerticalOptions="CenterAndExpand">
+                <StackLayout Spacing="15">
+                    <Label Text="Class Type" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding ClassType}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Teacher" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding TeacherName}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Date" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding Date}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Time" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding Time}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Capacity" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding Capacity}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Price" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding Price}" FontSize="18" TextColor="#5C5E61" />
+
+                    <Label Text="Description" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" />
+                    <Label Text="{Binding Description}" FontSize="18" TextColor="#5C5E61" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Grid để đặt hai nút trong cùng một dòng với khoảng cách 20px -->
+            <Button Text="Back" 
+                        BackgroundColor="#D1A570" 
+                        TextColor="White" 
+                        CornerRadius="25" 
+                        Padding="15" 
+                        HeightRequest="50" 
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="Center"
+                        BorderColor="#C1854A" 
+                        BorderWidth="2" 
+                        Grid.Column="1"
+                        Margin="20,0,0,0"
+                        Clicked="OnBackClicked"/>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
