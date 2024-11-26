@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace YogaCustomerApp.Views
 {
@@ -18,106 +19,137 @@ namespace YogaCustomerApp.Views
         {
             InitializeComponent();
             _firebaseClient = new FirebaseClient("https://yogaapp-b76cc-default-rtdb.firebaseio.com/");
-            LoadBookedClasses();  // Load the booked classes when page is initialized
+            BookedClasses = new ObservableCollection<Booking>();
+            BookedClasses.CollectionChanged += OnBookedClassesChanged; // Subscribe to collection changes
+            LoadBookedClasses(); // Load booked classes when page is initialized
+        }
+
+        // Event to update the total when the collection changes
+        private void OnBookedClassesChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            UpdateTotalBookedClasses();
         }
 
         // Load booked classes from Firebase
         private async Task LoadBookedClasses()
         {
-            var bookings = await _firebaseClient
-                .Child("bookings")  // Get data from the "bookings" node
-                .OnceAsync<Booking>();
+            try
+            {
+                var bookings = await _firebaseClient
+                    .Child("bookings") // Get data from the "bookings" node
+                    .OnceAsync<Booking>();
 
-            // Populate the BookedClasses collection with the fetched bookings
-            BookedClasses = new ObservableCollection<Booking>(bookings.Select(b => b.Object));
-            BindingContext = this;
+                // Populate the BookedClasses collection with the fetched bookings
+                BookedClasses.Clear();
+                foreach (var booking in bookings.Select(b => b.Object))
+                {
+                    BookedClasses.Add(booking);
+                }
 
-            // Update the total number of booked classes
-            TotalBookedClassesLabel.Text = BookedClasses.Count.ToString();
+                BindingContext = this;
+
+                // Update the total number of booked classes
+                UpdateTotalBookedClasses();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading classes: {ex.Message}");
+                await DisplayAlert("Error", $"An error occurred while loading booked classes: {ex.Message}", "OK");
+            }
         }
-
 
         // Handle "Cancel Class" button click
         private async void OnCancelClassClicked(object sender, EventArgs e)
         {
             var button = (Button)sender;
-            var booking = button.BindingContext as Booking;  // Get the current booking context
+            var booking = button.BindingContext as Booking;
 
-            if (booking != null)
+            if (booking == null || string.IsNullOrEmpty(booking.ClassId) || string.IsNullOrEmpty(booking.Email))
             {
-                try
-                {
-                    // Remove the class from the ObservableCollection (UI)
-                    BookedClasses.Remove(booking);
-
-                    // Delete the booking record from the "bookings" node in Firebase
-                    var bookingSnapshot = await _firebaseClient
-                        .Child("bookings")
-                        .OnceAsync<Booking>();
-
-                    // Find and remove the booking that matches the email and class
-                    var bookingToDelete = bookingSnapshot.FirstOrDefault(item => item.Object.ClassId == booking.ClassId && item.Object.Email == booking.Email);
-
-                    if (bookingToDelete != null)
-                    {
-                        // Delete the booking from Firebase
-                        await _firebaseClient
-                            .Child("bookings")
-                            .Child(bookingToDelete.Key)  // Get the booking key and delete it
-                            .DeleteAsync();
-                    }
-                    else
-                    {
-                        await DisplayAlert("Error", "Booking not found in the database.", "OK");
-                        return;
-                    }
-
-                    // Update the corresponding class in the "classes" node to remove the user's email
-                    var firebaseClass = await _firebaseClient
-                        .Child("classes")
-                        .Child(booking.ClassId)  // Use the ClassId to get the correct class
-                        .OnceSingleAsync<YogaClass>();
-
-                    if (firebaseClass != null)
-                    {
-                        // Remove the email from the BookedUsers list (if it exists)
-                        if (firebaseClass.BookedUsers != null && firebaseClass.BookedUsers.Contains(booking.Email))
-                        {
-                            firebaseClass.BookedUsers.Remove(booking.Email);
-
-                            // Update the class with the new list of booked users
-                            await _firebaseClient
-                                .Child("classes")
-                                .Child(booking.ClassId)
-                                .PutAsync(firebaseClass);  // Update the class after email removal
-                        }
-                    }
-                    else
-                    {
-                        await DisplayAlert("Error", "Class not found in the database.", "OK");
-                        return;
-                    }
-
-                    // Sanitize email to make it a valid Firebase path
-                    var sanitizedEmail = booking.Email.Replace(".", "_");
-
-                    // Remove the customer's booking from the "customers" node in Firebase
-                    var customerRef = _firebaseClient
-                        .Child("customers")
-                        .Child(sanitizedEmail);  // The sanitized email is used as the key in the "customers" node
-
-                    // Delete the customer's bookings (email) from the "customers" node
-                    await customerRef.DeleteAsync();
-
-                    // Reload booked classes to update the UI
-                    await LoadBookedClasses();  // Refresh the list and total count
-                }
-                catch (Exception ex)
-                {
-                    // Handle any exceptions that occur during the cancel process
-                    await DisplayAlert("Error", "An error occurred while canceling the class: " + ex.Message, "OK");
-                }
+                await DisplayAlert("Error", "Invalid booking data.", "OK");
+                return;
             }
+
+            bool confirmCancel = await DisplayAlert("Cancel Class", $"Do you want to cancel the class '{booking.ClassType}'?", "Yes", "No");
+            if (!confirmCancel) return;
+
+            try
+            {
+                var bookingSnapshot = await _firebaseClient
+                    .Child("bookings")
+                    .OnceAsync<Booking>();
+
+                var bookingToDelete = bookingSnapshot.FirstOrDefault(b =>
+                    b.Object.ClassId == booking.ClassId && b.Object.Email == booking.Email);
+
+                if (bookingToDelete == null)
+                {
+                    await DisplayAlert("Error", "Booking record not found.", "OK");
+                    return;
+                }
+
+                // Delete booking from Firebase
+                await _firebaseClient
+                    .Child("bookings")
+                    .Child(bookingToDelete.Key)
+                    .DeleteAsync();
+
+                // Update class in Firebase
+                var firebaseClass = await _firebaseClient
+                    .Child("classes")
+                    .Child(booking.ClassId)
+                    .OnceSingleAsync<YogaClass>();
+
+                if (firebaseClass != null && firebaseClass.BookedUsers != null)
+                {
+                    firebaseClass.BookedUsers.Remove(booking.Email);
+
+                    await _firebaseClient
+                        .Child("classes")
+                        .Child(booking.ClassId)
+                        .Child("BookedUsers")
+                        .PutAsync(firebaseClass.BookedUsers);
+                }
+
+                // Remove booking from customer data in Firebase
+                var sanitizedEmail = booking.Email.Replace(".", "_");
+                var customerRef = _firebaseClient
+                    .Child("customers")
+                    .Child(sanitizedEmail);
+
+                await customerRef
+                    .Child("BookedClasses")
+                    .Child(booking.ClassId)
+                    .DeleteAsync();
+
+                // Update the ObservableCollection
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    if (BookedClasses.Contains(booking))
+                    {
+                        BookedClasses.Remove(booking);
+                    }
+                });
+
+                await DisplayAlert("Success", $"Class '{booking.ClassType}' has been successfully canceled.", "OK");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error canceling class: {ex.Message}");
+                await DisplayAlert("Error", $"An error occurred while canceling the class: {ex.Message}", "OK");
+            }
+        }
+
+        // Update the total booked classes
+        private void UpdateTotalBookedClasses()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if (TotalBookedClassesLabel != null)
+                {
+                    TotalBookedClassesLabel.Text = BookedClasses?.Count.ToString() ?? "0";
+                }
+            });
         }
 
         // Class representing a Booking
@@ -130,6 +162,22 @@ namespace YogaCustomerApp.Views
             public decimal Price { get; set; }
             public string Status { get; set; }
             public string TeacherName { get; set; }
+        }
+
+        // Class representing a YogaClass
+        public class YogaClass
+        {
+            public int Capacity { get; set; }
+            public string ClassType { get; set; }
+            public string Date { get; set; }
+            public string Description { get; set; }
+            public int Duration { get; set; }
+            public int Id { get; set; }
+            public int Price { get; set; }
+            public string TeacherName { get; set; }
+            public string Time { get; set; }
+            public string FirebaseId { get; set; }
+            public List<string> BookedUsers { get; set; } = new List<string>();
         }
     }
 }

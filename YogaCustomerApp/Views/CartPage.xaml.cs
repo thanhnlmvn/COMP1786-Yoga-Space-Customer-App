@@ -53,95 +53,87 @@ namespace YogaCustomerApp.Views
             // Sanitize email to make it a valid Firebase path key
             var sanitizedEmail = email.Replace(".", "_");
 
-            // Iterate through the cart to book each class
             foreach (var yogaClass in CartClasses)
             {
                 var classId = yogaClass.FirebaseId;  // Assuming you have this field as the unique identifier
 
+                // Check if the booking already exists in the "bookings" node
+                var existingBookings = await _firebaseClient
+                    .Child("bookings")
+                    .OnceAsync<Booking>();
+
+                var duplicateBooking = existingBookings.FirstOrDefault(b =>
+                    b.Object.ClassId == classId && b.Object.Email == email);
+
+                if (duplicateBooking != null)
+                {
+                    // Display alert if a duplicate booking is found
+                    await DisplayAlert("Already Booked", $"You have already booked the class {yogaClass.ClassType} on {yogaClass.Date}.", "OK");
+                    continue; // Skip to the next class
+                }
+
+                // Add a new booking record to the "bookings" node
+                var booking = new Booking
+                {
+                    Email = email,
+                    ClassId = classId,
+                    ClassType = yogaClass.ClassType,
+                    Date = yogaClass.Date,
+                    Price = yogaClass.Price,
+                    Status = "booked",
+                    TeacherName = yogaClass.TeacherName
+                };
+
+                await _firebaseClient
+                    .Child("bookings")
+                    .PostAsync(booking);
+
                 // Fetch the class from Firebase
                 var firebaseClass = await _firebaseClient
                     .Child("classes")
-                    .Child(classId)  // Using the class ID to get the correct class
+                    .Child(classId)
                     .OnceSingleAsync<YogaClass>();
 
                 if (firebaseClass != null)
                 {
-                    // Check if the email is already in the "BookedUsers" list
-                    if (firebaseClass.BookedUsers != null && firebaseClass.BookedUsers.Contains(email))
-                    {
-                        // Display alert if the email is already booked for the class
-                        await DisplayAlert("Already Booked", "This email has already booked this class.", "OK");
-                        // Keep the class in the cart, do not remove it
-                        continue; // Continue to the next class in the cart without removing the current class
-                    }
-
-                    // Add a new booking record to the "bookings" node
-                    var booking = new Booking
-                    {
-                        Email = email,
-                        ClassId = classId,
-                        ClassType = yogaClass.ClassType,
-                        Date = yogaClass.Date,
-                        Price = yogaClass.Price,
-                        Status = "booked",
-                        TeacherName = yogaClass.TeacherName  // Set the TeacherName from the class
-                    };
-
-                    // Add booking to the "bookings" node
-                    await _firebaseClient
-                        .Child("bookings")
-                        .PostAsync(booking);
-
-                    // Update the emails list directly in the "classes" node
+                    // Add email to BookedUsers if not already present
                     if (firebaseClass.BookedUsers == null)
                         firebaseClass.BookedUsers = new List<string>();
 
-                    // Add the email to the "BookedUsers" list
-                    firebaseClass.BookedUsers.Add(email);
-
-                    // Update the "classes" node with the new list of emails
-                    await _firebaseClient
-                        .Child("classes")
-                        .Child(classId)
-                        .Child("BookedUsers") // Target the "BookedUsers" field for update
-                        .PutAsync(firebaseClass.BookedUsers);  // Only update the BookedUsers field
-
-                    // Update the customer node with the booked class for the email
-                    var customerBookingRef = _firebaseClient
-                        .Child("customers")
-                        .Child(sanitizedEmail);  // The email will be the key
-
-                    // Fetch the current bookings for the email
-                    var currentBookedClasses = await customerBookingRef.Child("BookedClasses").OnceSingleAsync<Dictionary<string, object>>();
-
-                    // Class details to add under the customer's BookedClasses node
-                    var classDetails = new Dictionary<string, object>
+                    if (!firebaseClass.BookedUsers.Contains(email))
                     {
-                        { "ClassType", yogaClass.ClassType },
-                        { "Price", yogaClass.Price },
-                        { "TeacherName", yogaClass.TeacherName },
-                        { "Date", yogaClass.Date }
-                    };
+                        firebaseClass.BookedUsers.Add(email);
 
-                    if (currentBookedClasses == null)
-                    {
-                        // If no bookings exist for this email, create a new BookedClasses node with classId as key
-                        await customerBookingRef.Child("BookedClasses").Child(classId).PutAsync(classDetails);
+                        // Update the "classes" node with the new list of emails
+                        await _firebaseClient
+                            .Child("classes")
+                            .Child(classId)
+                            .Child("BookedUsers")
+                            .PutAsync(firebaseClass.BookedUsers);
                     }
-                    else
-                    {
-                        // If bookings exist, update the specific classId entry
-                        if (!currentBookedClasses.ContainsKey(classId))
-                        {
-                            await customerBookingRef.Child("BookedClasses").Child(classId).PutAsync(classDetails);
-                        }
-                    }
-
-                    await DisplayAlert("Success", $"You have successfully booked the {yogaClass.ClassType} class with {yogaClass.TeacherName} on {yogaClass.Date}!", "OK");
                 }
+
+                // Update the customer node with the booked class for the email
+                var customerBookingRef = _firebaseClient
+                    .Child("customers")
+                    .Child(sanitizedEmail);
+
+                // Class details to add under the customer's BookedClasses node
+                var classDetails = new Dictionary<string, object>
+                {
+                    { "ClassType", yogaClass.ClassType },
+                    { "Price", yogaClass.Price },
+                    { "TeacherName", yogaClass.TeacherName },
+                    { "Date", yogaClass.Date }
+                };
+
+                // Add or update the booking under the customer's BookedClasses node
+                await customerBookingRef.Child("BookedClasses").Child(classId).PutAsync(classDetails);
+
+                await DisplayAlert("Success", $"You have successfully booked the {yogaClass.ClassType} class with {yogaClass.TeacherName} on {yogaClass.Date}!", "OK");
             }
 
-            // Optionally, clear the cart after booking (you can comment this if you want to keep the cart)
+            // Optionally, clear the cart after booking
             CartClasses.Clear();
             UpdateTotalPrice();
         }
